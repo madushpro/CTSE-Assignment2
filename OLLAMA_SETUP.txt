@@ -1,0 +1,226 @@
+"""
+OLLAMA SETUP and INSTALLATION GUIDE
+
+This guide explains how to set up Ollama for the AI Travel Planner Multi-Agent System.
+Ollama is required for the system to use real LLM-based agent reasoning.
+
+===============================================================================
+STEP 1: INSTALL OLLAMA
+===============================================================================
+
+Windows:
+--------
+1. Download Ollama from https://ollama.ai
+2. Run the installer (ollama-windows-amd64.exe)
+3. Follow the installation wizard
+4. Ollama will be installed to: C:\Users\<YourUsername>\AppData\Local\Programs\Ollama
+
+Mac:
+----
+1. Download Ollama from https://ollama.ai
+2. Open the DMG file
+3. Drag Ollama to Applications folder
+4. Launch Ollama from Applications
+
+Linux:
+------
+curl -fsSL https://ollama.ai/install.sh | sh
+
+
+===============================================================================
+STEP 2: DOWNLOAD THE llama3:8b MODEL
+===============================================================================
+
+Open terminal/PowerShell and run:
+
+    ollama pull llama3:8b
+
+This downloads the 4.7GB llama3:8b model. It may take several minutes.
+You only need to do this once - the model is cached locally after download.
+
+Verify installation:
+
+    ollama list
+
+You should see "llama3:8b" in the output.
+
+
+===============================================================================
+STEP 3: START OLLAMA SERVER
+===============================================================================
+
+Run one of these commands in your terminal (leave it running):
+
+    ollama serve
+
+Ollama will start on http://localhost:11434
+
+You should see:
+    Listening on http://127.0.0.1:11434 (format: http, address: 127.0.0.1, port: 11434)
+    Listening on [::1]:11434 (format: http, address: ::1, port: 11434)
+
+Keep this terminal open while using the AI Travel Planner.
+
+
+===============================================================================
+STEP 4: TEST OLLAMA CONNECTION
+===============================================================================
+
+In a NEW terminal (keep Ollama server running in first terminal):
+
+    python ollama_client.py
+
+You should see successful connection and test outputs.
+
+If you get connection error:
+- Make sure Ollama server is running (Step 3)
+- Check that no firewall is blocking localhost:11434
+- Try restarting Ollama
+
+
+===============================================================================
+STEP 5: RUN AI TRAVEL PLANNER WITH OLLAMA
+===============================================================================
+
+Method A: CLI (with Ollama)
+---------------------------
+1. Start Ollama server: ollama serve
+2. In new terminal, run: python main.py
+3. System will use llama3:8b for agent reasoning
+
+Method B: Web UI (with Ollama)
+------------------------------
+1. Start Ollama server: ollama serve
+2. In new terminal, run: python -m streamlit run app.py
+3. Access http://localhost:8501
+4. System will use llama3:8b for agent reasoning
+
+Method C: Using without Ollama (Mock Data)
+-------------------------------------------
+If Ollama is not available, the system automatically falls back to mock data.
+Existing plans will still work, but without real LLM reasoning.
+
+To explicitly disable Ollama:
+    - Edit main.py: Change TravelPlannerMAS(use_ollama=True) to use_ollama=False
+
+
+===============================================================================
+OLLAMA CONFIGURATION
+===============================================================================
+
+The Ollama client is configured in ollama_client.py:
+
+- Model: llama3:8b (can be changed to llama3:70b, llama2, etc.)
+- Host: http://localhost:11434 (default Ollama server)
+- Temperature: 0.7 (creativity level, range 0-1)
+- Max tokens: 500-1000 (response length)
+
+To modify these:
+
+    from ollama_client import create_ollama_client
+    
+    client = create_ollama_client(
+        model="llama3:70b",  # Larger model
+        host="http://localhost:11434"
+    )
+
+
+===============================================================================
+SYSTEM REQUIREMENTS FOR OLLAMA
+===============================================================================
+
+Minimum:
+- RAM: 8GB (for llama3:8b)
+- Disk: 5GB (for model download)
+- CPU: Any modern processor
+
+Recommended:
+- RAM: 16GB+
+- GPU: NVIDIA/AMD/Apple Silicon (for faster inference)
+- Disk: 10GB+ available space
+
+Note: Ollama uses ~4-6GB RAM when running. Ensure your computer has enough.
+
+
+===============================================================================
+TROUBLESHOOTING
+===============================================================================
+
+Issue: "Cannot connect to Ollama at http://localhost:11434"
+Solution:
+  1. Verify Ollama server is running: ollama serve
+  2. Check if port 11434 is available: netstat -an | grep 11434
+  3. Try accessing http://localhost:11434/api/tags in browser
+  4. Restart Ollama server
+
+Issue: "llama3:8b model not found"
+Solution:
+  1. Run: ollama pull llama3:8b
+  2. Wait for download to complete (~5-10 minutes)
+  3. Verify: ollama list
+
+Issue: "LLM generation failed. Falling back to mock data"
+Solution:
+  1. Check Ollama server is running
+  2. Ensure llama3:8b model is downloaded
+  3. Check available system RAM
+  4. Check logs in logs/log.txt for error details
+
+Issue: "Ollama is slow"
+Solution:
+  1. Increase RAM allocation to Ollama
+  2. Close other applications consuming RAM
+  3. Use GPU acceleration if available
+  4. Consider using smaller model combinations
+
+
+===============================================================================
+PERFORMANCE TIPS
+===============================================================================
+
+1. Keep Ollama server running in background
+   - Use system tray if available
+   - Or use tmux/screen for persistent terminal session
+
+2. First run will be slower (model loading)
+   - Subsequent requests are faster
+
+3. Reduce token count for faster responses
+   - Edit ollama_client.py: max_tokens=300 (instead of 500)
+
+4. Use GPU acceleration if available
+   - Ollama automatically detects and uses GPU
+   - Significantly faster on NVIDIA/AMD/Apple Silicon
+
+
+===============================================================================
+ADVANCED: USING DIFFERENT MODELS
+===============================================================================
+
+Available models (can be downloaded):
+- llama2 (smaller, faster)
+- llama3:8b (balanced, default)
+- llama3:70b (larger, better quality, slower)
+- mistral (fast, creative)
+- neural-chat (specialized for chat)
+- dolphin-mixtral (high quality, powerful)
+
+To use different model:
+
+    1. Download: ollama pull mistral
+    2. Update ollama_client.py: model="mistral"
+    3. Restart system
+
+Cost/Speed/Quality tradeoff:
+- llama3:8b: BALANCED (recommended)
+- llama2: SPEED (fastest)
+- llama3:70b or dolphin-mixtral: QUALITY (best results)
+
+
+===============================================================================
+END OF SETUP GUIDE
+
+For more info: https://ollama.ai
+Report issues: Check logs in logs/log.txt
+===============================================================================
+"""
