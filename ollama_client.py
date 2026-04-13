@@ -36,6 +36,7 @@ class OllamaClient:
         self.model = model
         self.host = host
         self.api_endpoint = f"{host}/api/generate"
+        self.chat_endpoint = f"{host}/api/chat"
         self.check_connection()
 
     def check_connection(self) -> bool:
@@ -108,18 +109,41 @@ class OllamaClient:
 
         try:
             logger.info(f"Calling Ollama: model={self.model}, tokens={max_tokens}")
-            response = requests.post(
-                self.api_endpoint,
-                json=payload,
-                timeout=300  # 5 minute timeout for LLM
-            )
-            response.raise_for_status()
-
-            result = response.json()
-            generated_text = result.get("response", "").strip()
-
-            logger.info(f"✓ Generated {len(generated_text)} chars from LLM")
-            return generated_text
+            
+            # Try chat endpoint first (modern Ollama versions)
+            chat_payload = {
+                "model": self.model,
+                "messages": [{"role": "user", "content": full_prompt}],
+                "stream": False,
+                "options": {
+                    "temperature": temperature,
+                    "num_predict": max_tokens
+                }
+            }
+            
+            try:
+                response = requests.post(
+                    self.chat_endpoint,
+                    json=chat_payload,
+                    timeout=300
+                )
+                response.raise_for_status()
+                result = response.json()
+                generated_text = result.get("message", {}).get("content", "").strip()
+                logger.info(f"✓ Generated {len(generated_text)} chars from LLM (chat endpoint)")
+                return generated_text
+            except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError, KeyError):
+                # Fallback to generate endpoint (older Ollama versions)
+                response = requests.post(
+                    self.api_endpoint,
+                    json=payload,
+                    timeout=300
+                )
+                response.raise_for_status()
+                result = response.json()
+                generated_text = result.get("response", "").strip()
+                logger.info(f"✓ Generated {len(generated_text)} chars from LLM (generate endpoint)")
+                return generated_text
 
         except requests.exceptions.Timeout:
             raise requests.RequestException(
