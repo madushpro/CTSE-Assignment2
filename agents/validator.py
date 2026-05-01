@@ -1,16 +1,3 @@
-"""
-Plan Validator Agent - STUDENT 4 CONTRIBUTION
-
-Role: Quality assurance and plan validation
-Goal: Ensure final plan meets quality standards and user requirements
-Backstory: Quality assurance expert
-
-STUDENT 4: Responsible for this agent
-- Implements intelligent plan validation using LLM
-- Creates detailed validation reports with feedback
-- Handles fallback to rule-based validation if LLM unavailable
-"""
-
 from typing import Dict, Any, List, Optional
 import sys
 import os
