@@ -14,13 +14,6 @@ import os
 from datetime import datetime
 from typing import Dict, Any, Optional
 
-# Core functionality: File operations for travel plan management
-# - save_travel_plan: Saves formatted travel plans with timestamps
-# - append_to_log: Adds entries to execution logs
-# - load_travel_plan: Retrieves saved travel plans
-# - clear_log: Resets log files for fresh starts
-# - get_log_contents: Reads current log file contents
-
 
 def save_travel_plan(plan_content: str, filename: str = "output.txt") -> Dict[str, Any]:
     """
@@ -47,11 +40,9 @@ def save_travel_plan(plan_content: str, filename: str = "output.txt") -> Dict[st
         >>> print(f"Saved to: {result['filepath']}")
     """
     
-    # Validate input parameters
     if not plan_content or not isinstance(plan_content, str):
         raise ValueError("plan_content must be a non-empty string")
     
-    # Ensure filename has .txt extension
     if not filename.endswith('.txt'):
         filename = filename + '.txt'
     
@@ -61,7 +52,7 @@ def save_travel_plan(plan_content: str, filename: str = "output.txt") -> Dict[st
         if output_dir and not os.path.exists(output_dir):
             os.makedirs(output_dir, exist_ok=True)
         
-        # Format content with header and timestamp
+        # Format content with header
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         formatted_content = f"""
 {'='*70}
@@ -76,11 +67,10 @@ End of Travel Plan
 {'='*70}
 """
         
-        # Write formatted content to file
+        # Write to file
         with open(filename, 'w', encoding='utf-8') as f:
             f.write(formatted_content)
         
-        # Calculate file size and prepare success response
         file_size = len(formatted_content.encode('utf-8'))
         
         return {
@@ -117,7 +107,6 @@ def append_to_log(
         IOError: If log file cannot be written
     """
     
-    # Validate log entry input
     if not log_entry or not isinstance(log_entry, str):
         raise ValueError("log_entry must be a non-empty string")
     
@@ -127,11 +116,10 @@ def append_to_log(
         if log_dir and not os.path.exists(log_dir):
             os.makedirs(log_dir, exist_ok=True)
         
-        # Format log entry with timestamp
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         formatted_entry = f"[{timestamp}] {log_entry}\n"
         
-        # Append formatted entry to log file
+        # Append to log file
         with open(log_filename, 'a', encoding='utf-8') as f:
             f.write(formatted_entry)
         
@@ -167,7 +155,6 @@ def load_travel_plan(filename: str = "output.txt") -> Dict[str, Any]:
     """
     
     try:
-        # Check if file exists before attempting to read
         if not os.path.exists(filename):
             return {
                 "success": False,
@@ -177,11 +164,9 @@ def load_travel_plan(filename: str = "output.txt") -> Dict[str, Any]:
                 "exists": False
             }
         
-        # Read file content
         with open(filename, 'r', encoding='utf-8') as f:
             content = f.read()
         
-        # Get file metadata
         stat_info = os.stat(filename)
         last_modified = datetime.fromtimestamp(stat_info.st_mtime).strftime("%Y-%m-%d %H:%M:%S")
         
@@ -213,12 +198,12 @@ def clear_log(log_filename: str = "logs/log.txt") -> Dict[str, Any]:
     """
     
     try:
-        # Create directory if needed (in case log file doesn't exist yet)
+        # Create directory if needed
         log_dir = os.path.dirname(log_filename)
         if log_dir and not os.path.exists(log_dir):
             os.makedirs(log_dir, exist_ok=True)
         
-        # Clear the file by writing empty string
+        # Clear the file
         with open(log_filename, 'w', encoding='utf-8') as f:
             f.write("")
         
@@ -248,11 +233,9 @@ def get_log_contents(log_filename: str = "logs/log.txt") -> str:
     """
     
     try:
-        # Check if log file exists
         if not os.path.exists(log_filename):
             return "No logs yet.\n"
         
-        # Read and return entire log file content
         with open(log_filename, 'r', encoding='utf-8') as f:
             return f.read()
     
@@ -264,7 +247,7 @@ if __name__ == "__main__":
     # Test the file saver tool
     print("\n=== File Saver Tool Tests ===\n")
     
-    # Sample travel plan for testing
+    # Test travel plan
     test_plan = """
     ELLA TRAVEL PLAN - 3 DAYS
     
@@ -285,27 +268,27 @@ if __name__ == "__main__":
     """
     
     try:
-        # Test 1: Save plan - verify file creation and formatting
+        # Test 1: Save plan
         print("Test 1: Save travel plan")
         result = save_travel_plan(test_plan, "test_plan.txt")
         print(f"  Success: {result['success']}")
         print(f"  Saved to: {result['filepath']}")
         print(f"  Size: {result['size_bytes']} bytes\n")
         
-        # Test 2: Append to log - verify log entry creation
+        # Test 2: Append to log
         print("Test 2: Append to log")
         log_result = append_to_log("Test log entry 1", "test_log.txt")
         print(f"  Success: {log_result['success']}")
         print(f"  Log file: {log_result['log_file']}\n")
         
-        # Test 3: Load plan - verify file reading and metadata
+        # Test 3: Load plan
         print("Test 3: Load travel plan")
         load_result = load_travel_plan("test_plan.txt")
         print(f"  Success: {load_result['success']}")
         print(f"  File size: {load_result['size_bytes']} bytes")
         print(f"  Last modified: {load_result['last_modified']}\n")
         
-        # Test 4: Get log contents - verify log reading
+        # Test 4: Get log contents
         print("Test 4: Get log contents")
         logs = get_log_contents("test_log.txt")
         print(f"  Log content length: {len(logs)} chars")
@@ -313,7 +296,7 @@ if __name__ == "__main__":
     except (ValueError, IOError) as e:
         print(f"✗ Error: {e}")
     finally:
-        # Cleanup test files
+        # Cleanup
         for f in ["test_plan.txt", "test_log.txt"]:
             if os.path.exists(f):
                 os.remove(f)
