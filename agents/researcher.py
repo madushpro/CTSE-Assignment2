@@ -16,7 +16,7 @@ import sys
 import os
 import logging
 
-# Add tools directory to path
+# Add tools directory to path for importing custom tools
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'tools'))
 
 from location_data_tool import get_location_data, get_attraction_suggestions
@@ -40,6 +40,7 @@ class LocationResearchAgent:
         Args:
             use_ollama (bool): Whether to use Ollama LLM (default: True)
         """
+        # Set agent identity and characteristics
         self.role = "Destination Research Specialist"
         self.goal = "Provide rich, culturally accurate destination information to enhance travel plans"
         self.backstory = (
@@ -50,7 +51,7 @@ class LocationResearchAgent:
         )
         self.tools_used = ["get_location_data", "get_attraction_suggestions"]
         
-        # Initialize Ollama client if available
+        # Initialize Ollama client if available and requested
         self.ollama_client: Optional[OllamaClient] = None
         self.use_ollama = use_ollama and OLLAMA_AVAILABLE
         
@@ -82,10 +83,12 @@ class LocationResearchAgent:
         """
         
         try:
+            # Fetch basic location data using the location data tool
             location_data = get_location_data(destination)
+            # Get top attraction suggestions (limited to 3 for brevity)
             attractions = get_attraction_suggestions(destination, 3)
             
-            # Create enriched research data
+            # Create enriched research data combining location info and attractions
             research = {
                 "destination": destination,
                 "full_data": location_data,
@@ -115,6 +118,7 @@ class LocationResearchAgent:
         
         research = self.research_destination(destination)
         
+        # Build formatted travel guide with sections
         guide = f"""
 {'='*70}
 DESTINATION RESEARCH GUIDE: {destination.upper()}
@@ -136,6 +140,7 @@ TOP ATTRACTIONS
 ---------------
 """
         
+        # Add numbered list of top attractions
         for i, attraction in enumerate(research['highlights'], 1):
             guide += f"{i}. {attraction}\n"
         
@@ -143,6 +148,7 @@ TOP ATTRACTIONS
 ACCOMMODATION OPTIONS
 ---------------------
 """
+        # List up to 3 accommodation options
         for option in research['accommodation_options'][:3]:
             guide += f"• {option}\n"
         
@@ -150,6 +156,7 @@ ACCOMMODATION OPTIONS
 LOCAL CUISINES
 --------------
 """
+        # Extract and list local cuisines from full data
         cuisines = research['full_data'].get('cuisines', [])
         for cuisine in cuisines[:3]:
             guide += f"• {cuisine}\n"
@@ -167,9 +174,11 @@ TRAVEL TIPS
     def _build_practical_info(self, destination: str, location_data: Dict) -> str:
         """Build practical travel information for destination."""
         
+        # Extract transport and altitude information from location data
         transport_info = location_data.get('transport', '')
         altitude_info = f"Altitude: {location_data.get('altitude', 'N/A')}"
         
+        # Create comprehensive list of practical travel tips
         tips = f"""
 • Transportation: {transport_info}
 • {altitude_info}
@@ -194,6 +203,8 @@ TRAVEL TIPS
             List[str]: List of cultural insights and tips
         """
         
+        # Pre-defined cultural insights for major Sri Lankan destinations
+        # Each destination has a list of key cultural facts and tips
         cultural_insights = {
             "Ella": [
                 "Ella is a peaceful hill station beloved by hikers and nature enthusiasts",
@@ -241,6 +252,7 @@ TRAVEL TIPS
         if not self.ollama_client:
             raise RuntimeError("Ollama client not initialized")
         
+        # Build detailed prompt for LLM to generate cultural insights
         prompt = f"""Based on this {destination} travel itinerary, provide cultural insights and travel tips:
 
 {itinerary}
@@ -252,6 +264,7 @@ Provide:
 4. Safety and practical tips
 5. Hidden gems not in standard guides"""
         
+        # System prompt defines the LLM's role as a Sri Lanka travel expert
         system_prompt = (
             "You are an expert travel guide specializing in Sri Lankan destinations. "
             "Provide authentic, practical cultural insights that enhance travel experiences. "
@@ -259,6 +272,7 @@ Provide:
         )
         
         logger.info(f"Generating LLM insights for {destination}")
+        # Generate insights using Ollama with moderate creativity (temperature 0.6)
         insights = self.ollama_client.generate(
             prompt=prompt,
             system=system_prompt,
@@ -266,6 +280,7 @@ Provide:
             max_tokens=600
         )
         
+        # Validate that LLM returned meaningful content
         if not insights or len(insights.strip()) < 50:
             raise ValueError("LLM returned empty or too-short response")
         
@@ -286,7 +301,7 @@ Provide:
         
         research = self.research_destination(destination)
         
-        # Try LLM generation first
+        # Try LLM generation first for intelligent insights
         if self.use_ollama and self.ollama_client:
             try:
                 llm_insights = self._generate_llm_insights(destination, itinerary)
@@ -295,19 +310,23 @@ Provide:
             except Exception as e:
                 logger.warning(f"LLM enhancement failed: {str(e)}. Using mock data.")
         
-        # Fallback to mock data
+        # Fallback to mock data if LLM is unavailable or fails
         cultural_tips = self.get_cultural_insights(destination)
         
+        # Build enhanced itinerary with mock data sections
         enhanced = itinerary + "\n" + "="*70 + "\n"
         enhanced += "LOCATION RESEARCH & CULTURAL INSIGHTS (Mock Data)\n"
         enhanced += "="*70 + "\n\n"
         
+        # Add destination overview section
         enhanced += f"DESTINATION OVERVIEW:\n{research['summary']}\n\n"
         
+        # Add cultural tips section
         enhanced += "CULTURAL TIPS:\n"
         for tip in cultural_tips[:3]:
             enhanced += f"• {tip}\n"
         
+        # Add seasonal and climate information
         enhanced += f"\nBEST TIME TO VISIT:\n{research['best_season']}\n"
         enhanced += f"\nCLIMATE:\n{research['climate']}\n"
         
@@ -335,14 +354,14 @@ if __name__ == "__main__":
     
     agent = LocationResearchAgent()
     
-    # Test 1: Research destination
+    # Test 1: Research destination - verify basic research functionality
     print("Test 1: Research Ella")
     research = agent.research_destination("Ella")
     print(f"Destination: {research['destination']}")
     print(f"Best Season: {research['best_season']}")
     print(f"Top Attractions: {research['highlights'][:2]}\n")
     
-    # Test 2: Create detailed guide
+    # Test 2: Create detailed guide - verify guide formatting and content
     print("Test 2: Create travel guide for Kandy")
     guide = agent.create_detailed_guide("Kandy")
     print(guide)
