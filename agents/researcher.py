@@ -215,14 +215,8 @@ TRAVEL TIPS
                 "Galle Face Promenade is the city's soul - best visited at sunset",
                 "Street food culture is incredible - try kottu roti and lamprais",
                 "The city is culturally diverse with Hindu, Buddhist, and Muslim communities"
-            ],
-            "Galle": [
-                "Galle Fort is a marvel of 17th-century Dutch engineering",
-                "The fort lighthouse offers panoramic coastal views",
-                "Spice gardens nearby produce world-famous cinnamon",
-                "Local fishing culture adds authenticity to the experience",
-                "The southern coast has excellent snorkeling opportunities"
             ]
+
         }
         
         return cultural_insights.get(destination, ["No specific insights available"])
