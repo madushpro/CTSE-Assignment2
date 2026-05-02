@@ -1,15 +1,3 @@
-"""
-File Saver Tool for Plan Storage and Retrieval
-
-This tool handles:
-- Saving generated travel plans to files
-- Appending to existing plan logs
-- Loading previously saved plans
-- Formatting output for readability
-
-Author: AI Travel Planner Team
-"""
-
 import os
 from datetime import datetime
 from typing import Dict, Any, Optional
